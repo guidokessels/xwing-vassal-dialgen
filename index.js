@@ -32,7 +32,7 @@ const resetInput = async (page, inputHandle) => {
     resetInput(page, input);
 
     console.log(`Generating dial for ${ship.name}`);
-    await page.type('input[name=inputbox]', `${ship.name}.${ship.dial.join(',')}`);
+    await page.type('input[name=inputbox]', `${ship.name.replace(/\./g, '')}.${ship.dial.join(',')}`);
     await page.click('input[name=button]');
 
     console.log(`Saving dial image for ${ship.name}`);
