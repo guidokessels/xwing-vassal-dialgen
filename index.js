@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
 const fetch = require('cross-fetch');
+const fs = require('fs');
 
 const HEADLESS = true;
 
@@ -18,9 +19,6 @@ const resetInput = async (page, inputHandle) => {
   const ships = await request.json();
   console.log(`Loaded ${ships.length} ships`);
 
-  const dialShips = ships.filter(s => s.size !== "huge" && s.dial && s.dial.length > 0);
-  console.log(`Found ${dialShips.length} ships with dials`);
-
   console.log(`Opening dialgen page`);
   const browser = await puppeteer.launch({ headless: HEADLESS });
   const page = await browser.newPage();
@@ -28,25 +26,37 @@ const resetInput = async (page, inputHandle) => {
 
   const input = await page.$('input[name=inputbox]');
 
-  for (const ship of dialShips) {
+  for (const i in ships) {
+    const ship = ships[i];
+    if (ship.size === "huge" || !ship.dial || ship.dial.length === 0) {
+      console.log(`Skipping ${ship.name}`);
+      continue;
+    }
+
     resetInput(page, input);
 
     console.log(`Generating dial for ${ship.name}`);
-    await page.type('input[name=inputbox]', `${ship.name.replace(/\./g, '')}.${ship.dial.join(',')}`);
+    await page.type('input[name=inputbox]', ` .${ship.dial.join(',')}`);
     await page.click('input[name=button]');
 
-    console.log(`Saving dial image for ${ship.name}`);
+    const imagePath = `dials/${ship.name.replace(/[\/\.]/g, '')}.png`;
+    console.log(`Saving dial image in ${imagePath}`);
     const dialCanvas = await page.$('#myCanvas');
     await dialCanvas.screenshot({
-      path: `dial-images/${ship.xws}.png`,
+      path: `images/${imagePath}`,
       omitBackground: true,
     });
+
+    ships[i]['dial_image'] = imagePath;
   }
 
   await input.dispose();
 
   console.log(`Closing dialgen page`);
   await browser.close();
+
+  console.log(`Saving ships json`);
+  fs.writeFileSync('ships.js', JSON.stringify(ships, null, 2), 'utf8');
 
   console.log(`\nTook ${Date.now() - start}ms`);
 })();
