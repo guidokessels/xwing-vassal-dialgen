@@ -1,0 +1,15 @@
+{
+  "name": "xwing-dial-gen",
+  "version": "1.0.0",
+  "description": "Generate dial images from xwing-data ships json",
+  "main": "index.js",
+  "author": "Guido Kessels <mail@guidokessels.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cross-fetch": "^2.0.0",
+    "puppeteer": "^1.1.1"
+  }
+}
